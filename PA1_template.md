@@ -6,7 +6,8 @@ Title:  PA1_template.Rmd
 
 
 ```r
-activity <- read.csv("activity.csv", colClasses = c("integer","character","integer"), comment="",stringsAsFactors = FALSE, nrows = 17568)
+activity <- read.csv("activity.csv", colClasses = c("integer","character","integer"),
+                     comment="",stringsAsFactors = FALSE, nrows = 17568)
 ```
 
 ## What is mean total number of steps taken per day?
@@ -26,7 +27,8 @@ md1 <- median(totalsteps$total)
 ```r
 ### if 'breaks=50' is not specified, then in the range of 0 to 5000 steps, there is an increase from 10 to 13 after imputting values for missing data. But, with "breaks=50", we can clearly see that there are 8 days in the range 0 to 5000 steps, which is not present befor imputting values. Thus, adding breaks=50 brings in more clarity. Tried with different breaks values [100, 25, etc.], but 50 would help us to compare without NAs and with imputting missing values better.
 
-hist(totalsteps$total,breaks=50,col="lightgreen",xlab='Total Steps', ylab = "Days", main = "Total number of steps taken each day")
+hist(totalsteps$total,breaks=50,col="lightgreen",xlab='Total Steps', ylab = "Days", 
+     main = "Total number of steps taken each day")
 ```
 
 ![plot of chunk plotHist](figure/plotHist.png) 
