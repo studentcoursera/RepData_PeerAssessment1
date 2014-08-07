@@ -25,7 +25,12 @@ md1 <- median(totalsteps$total)
 
 #### Total number of steps taken each day
 ```{r plotHist}
-### if 'breaks=50' is not specified, then in the range of 0 to 5000 steps, there is an increase from 10 to 13 after imputting values for missing data. But, with "breaks=50", we can clearly see that there are 8 days in the range 0 to 5000 steps, which is not present befor imputting values. Thus, adding breaks=50 brings in more clarity. Tried with different breaks values [100, 25, etc.], but 50 would help us to compare without NAs and with imputting missing values better.
+### if 'breaks=50' is not specified, then in the range of 0 to 5000 steps, there is an increase 
+## from 10 to 13 after imputting values for missing data. But, with "breaks=50", 
+## we can clearly see that there are 8 days in the range 0 to 5000 steps, which is not present 
+## before imputting values. Thus, adding breaks=50 brings in more clarity. 
+## Tried with different breaks values [100, 25, etc.], but 50 would help us to compare without NAs 
+## and with imputting missing values better.
 
 hist(totalsteps$total,breaks=50,col="lightgreen",xlab='Total Steps', ylab = "Days", 
      main = "Total number of steps taken each day")
@@ -48,12 +53,14 @@ dimnames(averaged)[[2]] <- c("interval","totalsteps","countdates","average")
 max5min <- averaged$interval[which.max(averaged$average)]
 
 ## to get it in "hrs:mins" format
-max5min_time <- format(strptime(paste("2012-10-02", (max5min  %/% 100), (max5min %% 100)),"%F%H%M"), "%H:%M")
+max5min_time <- format(strptime(paste("2012-10-02", (max5min  %/% 100), 
+                                      (max5min %% 100)),"%F%H%M"), "%H:%M")
 ```
 
 #### Time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 ```{r plotL}
-plot(averaged$average ~ averaged$interval, type = "l", xlab = "5-minute interval", ylab = "average steps",col="blue")
+plot(averaged$average ~ averaged$interval, type = "l", xlab = "5-minute interval",
+     ylab = "average steps",col="blue")
 rm("averaged")
 ```
 
@@ -81,9 +88,15 @@ md2 <- median(totalfilledsteps$total)
 
 #### Total number of steps taken each day (after filling missing values)
 ```{r plotFillHist}
-### if 'breaks=50' is not specified, then in the range of 0 to 5000 steps, there is an increase from 10 to 13 after imputting values for missing data. But, with "breaks=50", we can clearly see that there are 8 days in the range 0 to 5000 steps, which is not present befor imputting values. Thus, adding breaks=50 brings in more clarity. Tried with different breaks values [100, 25, etc.], but 50 would help us to compare without NAs and with imputting missing values better.
+### if 'breaks=50' is not specified, then in the range of 0 to 5000 steps, there is an increase 
+## from 10 to 13 after imputting values for missing data. But, with "breaks=50", 
+## we can clearly see that there are 8 days in the range 0 to 5000 steps, which is not present 
+## before imputting values. Thus, adding breaks=50 brings in more clarity. 
+## Tried with different breaks values [100, 25, etc.], but 50 would help us to compare without NAs 
+## and with imputting missing values better.
 
-hist(totalfilledsteps$total,breaks=50,col="lightpink",xlab='Total Steps', main = "Total number of steps taken each day (after filling missing values)")
+hist(totalfilledsteps$total, breaks=50, col="lightpink", xlab='Total Steps', 
+     main = "Total number of steps taken each day (after filling missing values)")
 ```
 
 After filling the missing values, mean is `r sprintf("%.0f",mn2) `. Median is `r sprintf("%.0f",md2)`.
