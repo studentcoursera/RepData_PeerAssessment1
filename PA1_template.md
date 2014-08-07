@@ -5,17 +5,16 @@ Date:   Jul-2014                             ##
 Notes:  Reproducible Research Assignmnt 1    ##  
 
 ## Loading and preprocessing the data
-```{r filedownload,echo=FALSE,results=FALSE}
-setwd("/Users/ambika/gitDir/RepData_PeerAssessment1")
-if(!file.exists("activity.csv")) unzip("activity.zip")
-```
 
-```{r loadData}
+
+
+```r
 activity <- read.csv("activity.csv", colClasses = c("integer","character","integer"), comment="",stringsAsFactors = FALSE, nrows = 17568)
 ```
 
 ## What is mean total number of steps taken per day?
-```{r stepsMean}
+
+```r
 library(reshape2)
 
 newactivity <- activity[complete.cases(activity$steps),]
@@ -27,14 +26,18 @@ md1 <- median(totalsteps$total)
 ```
 
 Total number of steps taken each day
-```{r plotHist}
+
+```r
 hist(totalsteps$total,breaks=50,col="lightblue",xlab='Total Steps', main = "Total number of steps taken each day")
 ```
 
-Mean is `r sprintf("%.0f",mn1) `. Median is `r sprintf("%.0f",md1)`.
+![plot of chunk plotHist](figure/plotHist.png) 
+
+Mean is 10766. Median is 10765.
 
 ## What is the average daily activity pattern?
-```{r dailyPattern}
+
+```r
 library(reshape2)
 
 sumsteps <- melt(tapply(newactivity$steps,  newactivity$interval, sum))
@@ -47,20 +50,29 @@ max5min <- averaged$interval[which.max(averaged$average)]
 ```
 
 Time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r plotL}
+
+```r
 plot(averaged$average ~ averaged$interval, type = "l", xlab = "5-minute interval", ylab = "average steps",col="blue")
 ```
 
-`r max5min` is the 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
+![plot of chunk plotL](figure/plotL.png) 
+
+835 is the 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
 
 ## Imputing missing values
-```{r missingValues}
+
+```r
 sum(is.na(activity$steps))
 ```
-`r sum(is.na(activity$steps))` is the total number of missing values [steps] in the dataset.
+
+```
+## [1] 2304
+```
+2304 is the total number of missing values [steps] in the dataset.
 
 A new data set with the new strategy to fill in the missing values. Here, the NA values in step is filled with the median value for each interval.
-```{r fillStrategy}
+
+```r
 medsteps <- melt(tapply(newactivity$steps,  newactivity$interval, median))
 filledData <- merge(activity,medsteps, by.x = "interval", by.y = "Var1",all = TRUE)
 filledData[["steps"]][is.na(filledData[["steps"]])] <- filledData[["value"]][is.na(filledData[["steps"]])]
@@ -75,29 +87,37 @@ md2 <- median(totalfilledsteps$total)
 ```
 
 Total number of steps taken each day (after filling missing values)
-```{r plotFillHist}
+
+```r
 hist(totalfilledsteps$total,breaks=50,col="lightblue",xlab='Total Steps', main = "Total number of steps taken each day (after filling missing values)")
 ```
 
-After filling the missing values, mean is `r sprintf("%.0f",mn2) `. Median is `r sprintf("%.0f",md2)`.
+![plot of chunk plotFillHist](figure/plotFillHist.png) 
+
+After filling the missing values, mean is 9504. Median is 10395.
 
 Do these values differ from the estimates from the first part of the assignment? 
 * YES, they do.  
 
 What is the impact of imputing missing data on the estimates of the total daily number of steps?  
 Following are the observations:  
-* As median is considered to fill in the values, the mean and median has decreased by `r ((mean(totalsteps$total) - mean(totalfilledsteps$total)) / mean(totalsteps$total)) * 100`% and `r ((median(totalsteps$total) - median(totalfilledsteps$total)) / median(totalsteps$total)) * 100`% respectively.  
+* As median is considered to fill in the values, the mean and median has decreased by 11.7249% and 3.4371% respectively.  
 * Before and After:  
-Before imputing missing data mean and median is `r sprintf("%.0f",mn1) ` and `r sprintf("%.0f",md1)` respectively.  
-After imputting missing  data mean and median is `r sprintf("%.0f",mn2) ` and `r sprintf("%.0f",md2)` respectively.  
+Before imputing missing data mean and median is 10766 and 10765 respectively.  
+After imputting missing  data mean and median is 9504 and 10395 respectively.  
 * As per histogram comparison, there are about 8 days increase in the range of 1000 to 2000 total steps; which is not seen in the first part of the assignment.  
 * More specific details at date level [against total steps for each date]:  
-```{r snippet,echo=FALSE}
-tapply(reorderFilledData[["steps"]][is.na(activity[["steps"]])], reorderFilledData$date[is.na(activity[["steps"]])], sum)
+
+```
+## 2012-10-01 2012-10-08 2012-11-01 2012-11-04 2012-11-09 2012-11-10 
+##       1141       1141       1141       1141       1141       1141 
+## 2012-11-14 2012-11-30 
+##       1141       1141
 ```
  
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r weekday}
+
+```r
 reorderFilledData$date <- as.Date(reorderFilledData$date)
 weekend <- weekdays(as.Date(reorderFilledData$date),TRUE) %in% c("Sat", "Sun")
 reorderFilledData$day <- factor(ifelse(weekend, "weekend", "weekday"))
@@ -124,13 +144,13 @@ final$val[weekdayloc] <- final$value.x[weekdayloc]
 final$val[weekendloc] <- final$value.y[weekendloc]
 
 final <- final[order(final$date,final$interval),] 
-
 ```
-```{r weeksplot} 
+
+```r
 library(lattice)
 xyplot(val ~ interval | day, data = final, layout = c(1, 2), type="l", ylab = "steps")
 ```
 
-```{r cleanup, echo=FALSE}
-rm(list=ls())
-```
+![plot of chunk weeksplot](figure/weeksplot.png) 
+
+
