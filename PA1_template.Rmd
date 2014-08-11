@@ -62,13 +62,13 @@ plot(averaged$average ~ averaged$interval, type = "l", xlab = "5-minute interval
 rm("averaged")
 ```
 
-`r max5min_time` [`r max5min`] is the 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
+The 5-minute interval which on average across all the days in the dataset, contains the maximum number of steps is `r max5min_time` [`r max5min`].
 
 ## Imputing missing values
 ```{r missingValues}
 sum(is.na(activity$steps))
 ```
-`r sum(is.na(activity$steps))` is the total number of missing values [steps] in the dataset. 
+The total number of missing values [steps] in the dataset is `r sum(is.na(activity$steps))`. 
   
 #### A new data set with the new strategy to fill in the missing values. Here, the NA values in step is filled with the median value for each interval.
 ```{r fillStrategy}
