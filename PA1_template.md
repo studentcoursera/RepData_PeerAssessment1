@@ -152,7 +152,7 @@ dayavg <- ddply(reorderFilledData, .(interval, day), summarize, avgsteps=mean(st
 
 ```r
 library(lattice)
-xyplot(avgsteps ~ interval | day, data = dayavg, layout=c(1,2), type="l", xlab="Interval", ylab="Steps")
+xyplot(avgsteps ~ interval | day, data = dayavg, layout=c(1,2), type="l", xlab="Interval", ylab="Number of steps")
 ```
 
 ![plot of chunk weeksplot](figure/weeksplot.png) 
