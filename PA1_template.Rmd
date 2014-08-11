@@ -14,8 +14,8 @@ activity <- read.csv("activity.csv", colClasses = c("integer","character","integ
 
 ## What is mean total number of steps taken per day?
 ```{r stepsMean}
-require(reshape2)
-require(plyr)
+library(reshape2)
+library(plyr)
 
 completeactvity <- activity[complete.cases(activity$steps),]
 totalsteps <- melt(tapply(completeactvity$steps, factor(as.Date(completeactvity$date)), sum))
@@ -128,7 +128,7 @@ reorderFilledData$day <- factor(ifelse(weekend, "weekend", "weekday"))
 dayavg <- ddply(reorderFilledData, .(interval, day), summarize, avgsteps=mean(steps))
 ```
 ```{r weeksplot} 
-require(lattice)
+library(lattice)
 xyplot(avgsteps ~ interval | day, data = dayavg, layout=c(1,2), type="l", xlab="Interval", ylab="Steps")
 ```
 
