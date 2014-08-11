@@ -14,8 +14,21 @@ activity <- read.csv("activity.csv", colClasses = c("integer","character","integ
 
 ```r
 require(reshape2)
-require(plyr)
+```
 
+```
+## Loading required package: reshape2
+```
+
+```r
+require(plyr)
+```
+
+```
+## Loading required package: plyr
+```
+
+```r
 completeactvity <- activity[complete.cases(activity$steps),]
 totalsteps <- melt(tapply(completeactvity$steps, factor(as.Date(completeactvity$date)), sum))
 dimnames(totalsteps)[[2]] <- c("date","total")
@@ -152,6 +165,13 @@ dayavg <- ddply(reorderFilledData, .(interval, day), summarize, avgsteps=mean(st
 
 ```r
 require(lattice)
+```
+
+```
+## Loading required package: lattice
+```
+
+```r
 xyplot(avgsteps ~ interval | day, data = dayavg, layout=c(1,2), type="l", xlab="Interval", ylab="Steps")
 ```
 
