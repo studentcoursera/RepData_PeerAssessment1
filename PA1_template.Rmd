@@ -14,7 +14,8 @@ activity <- read.csv("activity.csv", colClasses = c("integer","character","integ
 
 ## What is mean total number of steps taken per day?
 ```{r stepsMean}
-library(reshape2)
+require(reshape2)
+require(plyr)
 
 completeactvity <- activity[complete.cases(activity$steps),]
 totalsteps <- melt(tapply(completeactvity$steps, factor(as.Date(completeactvity$date)), sum))
@@ -40,9 +41,6 @@ Mean is `r sprintf("%.0f",mn1) `. Median is `r sprintf("%.0f",md1)`.
 
 ## What is the average daily activity pattern?
 ```{r dailyPattern}
-library(reshape2)
-library(plyr)
-
 sumsteps <- ddply(completeactvity, .(interval), summarize, sumsteps=sum(steps))
 countdates <- count(completeactvity, vars = .(interval))
 merged <- merge(sumsteps,countdates, by.x = "interval", by.y = "interval")
@@ -123,8 +121,6 @@ rm(list=c("totalfilledsteps","totalsteps","activity"))
  
 ## Are there differences in activity patterns between weekdays and weekends?
 ```{r weekday}
-library(plyr)
-
 weekend <- weekdays(as.Date(reorderFilledData$date),TRUE) %in% c("Sat", "Sun")
 reorderFilledData$day <- factor(ifelse(weekend, "weekend", "weekday"))
 
@@ -132,7 +128,7 @@ reorderFilledData$day <- factor(ifelse(weekend, "weekend", "weekday"))
 dayavg <- ddply(reorderFilledData, .(interval, day), summarize, avgsteps=mean(steps))
 ```
 ```{r weeksplot} 
-library(lattice)
+require(lattice)
 xyplot(avgsteps ~ interval | day, data = dayavg, layout=c(1,2), type="l", xlab="Interval", ylab="Steps")
 ```
 
