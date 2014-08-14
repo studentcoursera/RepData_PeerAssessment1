@@ -3,10 +3,8 @@ Title:  PA1_template.Rmd
 
 ## Loading and preprocessing the data
 ```{r filedownload,echo=FALSE,results=FALSE}
-setwd("~/gitDir_studentcoursera/RepData_PeerAssessment1")
 if(!file.exists("activity.csv")) unzip("activity.zip")
 ```
-
 ```{r loadData}
 activity <- read.csv("activity.csv", colClasses = c("integer","character","integer"),
                      comment="",stringsAsFactors = FALSE, nrows = 17568)
@@ -18,51 +16,42 @@ library(reshape2)
 library(plyr)
 
 completeactvity <- activity[complete.cases(activity$steps),]
-totalsteps <- melt(tapply(completeactvity$steps, factor(as.Date(completeactvity$date)), sum))
-dimnames(totalsteps)[[2]] <- c("date","total")
+totalsteps <- ddply(completeactvity, .(date), summarize, total=sum(steps))
+```
+#### Total number of steps taken each day
+```{r plotHist}
+### With "breaks=50", the 8 days difference (during comparison) is evident. 
+hist(totalsteps$total, breaks=50, col="lightgreen", xlab='Total Steps', ylab = "Days", 
+     main = "Total number of steps taken each day")
+```
+#### MEAN and MEDIAN
+```{r meanmedian}
 mn1 <- mean(totalsteps$total)
 md1 <- median(totalsteps$total)
 ```
-
-#### Total number of steps taken each day
-```{r plotHist}
-### if 'breaks=50' is not specified, then in the range of 0 to 5000 steps, there is an increase 
-## from 10 to 13 after imputting values for missing data. But, with "breaks=50", 
-## we can clearly see that there are 8 days in the range 0 to 5000 steps, which is not present 
-## before imputting values. Thus, adding breaks=50 brings in more clarity. 
-## Tried with different breaks values [100, 25, etc.], but 50 would help us to compare without NAs 
-## and with imputting missing values better.
-
-hist(totalsteps$total,breaks=50,col="lightgreen",xlab='Total Steps', ylab = "Days", 
-     main = "Total number of steps taken each day")
-```
-
-Mean is `r sprintf("%.0f",mn1) `. Median is `r sprintf("%.0f",md1)`.
+Total number of steps taken per day: Mean and Median are `r sprintf("%.0f",mn1) ` and `r sprintf("%.0f",md1)` respectively.
 
 ## What is the average daily activity pattern?
 ```{r dailyPattern}
-sumsteps <- ddply(completeactvity, .(interval), summarize, sumsteps=sum(steps))
-countdates <- count(completeactvity, vars = .(interval))
-merged <- merge(sumsteps,countdates, by.x = "interval", by.y = "interval")
-averaged <- cbind(merged,merged$sumsteps/merged$freq)
-rm(list=c("sumsteps","countdates","merged"))
-dimnames(averaged)[[2]] <- c("interval","totalsteps","countdates","average")
-
-max5min <- averaged$interval[which.max(averaged$average)]
-
-## to get it in "hrs:mins" format
-max5min_time <- format(strptime(paste("2012-10-02", (max5min  %/% 100), 
-                                      (max5min %% 100)),"%F%H%M"), "%H:%M")
+## Average and median of steps for every interval (averaged across all days)
+summ <- ddply(completeactvity, .(interval), summarize, mn=mean(steps), md=median(steps))
+## To get the time interval in hrs:mins format 
+interval2hrsmins <- format(strptime(paste((summ$interval  %/% 100), 
+                                      (summ$interval %% 100)),"%H%M"), "%H:%M")
 ```
 
 #### Time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 ```{r plotL}
-plot(averaged$average ~ averaged$interval, type = "l", xlab = "5-minute interval",
-     ylab = "average steps",col="blue")
-rm("averaged")
+plot(summ$mn ~ summ$interval, type = "l", xlab = "5-minutes interval",
+     ylab = "Average steps", main = "Time series plot of the 5-minute interval", col="blue", xaxt = "n")
+axis(1, at=summ$interval, labels=interval2hrsmins)
 ```
 
-The 5-minute interval which on average across all the days in the dataset, contains the maximum number of steps is `r max5min_time` [`r max5min`].
+#### Max number of steps in 5 minutes interval
+```{r}
+max5min <- c(summ$interval[which.max(summ$mn)],interval2hrsmins[which.max(summ$mn)])
+```
+The 5-minute interval which on average across all the days in the dataset, contains the maximum number of steps is `r max5min[1]` [`r max5min[2]`].
 
 ## Imputing missing values
 ```{r missingValues}
@@ -70,52 +59,44 @@ sum(is.na(activity$steps))
 ```
 The total number of missing values [steps] in the dataset is `r sum(is.na(activity$steps))`. 
   
-#### A new data set with the new strategy to fill in the missing values. Here, the NA values in step is filled with the median value for each interval.
+#### Strategy to fill in the missing values
+A new data set with the NA values in 'number of steps' be filled with the median value for each interval of completed cases.  
 ```{r fillStrategy}
-medsteps <- melt(tapply(completeactvity$steps,  completeactvity$interval, median))
-filledData <- merge(activity,medsteps, by.x = "interval", by.y = "Var1",all = TRUE)
-filledData[["steps"]][is.na(filledData[["steps"]])] <- filledData[["value"]][is.na(filledData[["steps"]])]
+filledData <- merge(activity, summ, by.x = "interval", by.y = "interval", all = TRUE)
+filledData$steps[is.na(filledData$steps)] <- filledData$md[is.na(filledData$steps)]
 reorderFilledData <- filledData[order(filledData$date,filledData$interval),c(2,3,1)]
-rm(list=c("medsteps","filledData","completeactvity"))
-
-totalfilledsteps <- melt(tapply(reorderFilledData$steps, factor(as.Date(reorderFilledData$date)), sum))
-dimnames(totalfilledsteps)[[2]] <- c("date","total")
+totalfilledsteps <- ddply(reorderFilledData, .(date), summarize, total=sum(steps))
+```
+```{r cleanup1, echo=FALSE,results=FALSE}
+rm(list=c("summ","filledData","completeactvity"))
+```
+#### Total number of steps taken each day (after filling missing values)
+```{r plotFillHist}
+### With "breaks=50", the 8 days difference (during comparison) is evident.
+hist(totalfilledsteps$total, breaks=50, col="lightpink", xlab='Total Steps', ylab = "Days",  
+     main = "Total number of steps taken each day \n (after filling missing values)")
+```
+#### MEAN and MEDIAN
+```{r meanmedian2}
 mn2 <- mean(totalfilledsteps$total)
 md2 <- median(totalfilledsteps$total)
 ```
-
-#### Total number of steps taken each day (after filling missing values)
-```{r plotFillHist}
-### if 'breaks=50' is not specified, then in the range of 0 to 5000 steps, there is an increase 
-## from 10 to 13 after imputting values for missing data. But, with "breaks=50", 
-## we can clearly see that there are 8 days in the range 0 to 5000 steps, which is not present 
-## before imputting values. Thus, adding breaks=50 brings in more clarity. 
-## Tried with different breaks values [100, 25, etc.], but 50 would help us to compare without NAs 
-## and with imputting missing values better.
-
-hist(totalfilledsteps$total, breaks=50, col="lightpink", xlab='Total Steps', 
-     main = "Total number of steps taken each day (after filling missing values)")
-```
-
-After filling the missing values, mean is `r sprintf("%.0f",mn2) `. Median is `r sprintf("%.0f",md2)`.
+Total number of steps taken per day: Mean and Median are `r sprintf("%.0f",mn2) ` and `r sprintf("%.0f",md2)` respectively.
 
 #### Do these values differ from the estimates from the first part of the assignment? 
-* YES, they do.  
+* YES, they do.  Decrease in mean and median by 11.7249% and 3.4371% respectively.
 
 #### What is the impact of imputing missing data on the estimates of the total daily number of steps?  
 Following are the observations:   
-  
-* As median is considered to fill in the values, the mean and median has decreased by `r ((mean(totalsteps$total) - mean(totalfilledsteps$total)) / mean(totalsteps$total)) * 100`% and `r ((median(totalsteps$total) - median(totalfilledsteps$total)) / median(totalsteps$total)) * 100`% respectively.  
-* Before and After:  
-Before imputing missing data mean and median is `r sprintf("%.0f",mn1) ` and `r sprintf("%.0f",md1)` respectively.  
-After imputting missing  data mean and median is `r sprintf("%.0f",mn2) ` and `r sprintf("%.0f",md2)` respectively.  
-* As per histogram comparison, there are about 8 days increase in the range of 1000 to 2000 total steps; which is not seen in the first part of the assignment.  
-   * The dates which have missing values are `r unique(activity$date[is.na(activity$steps)])`, i.e., there are total of `r length(unique(activity$date[is.na(activity$steps)]))` days. Thus, with 50 breaks, we can do a proper comparison; as displayed in the above histograms.  
-   * The total number of steps less than 1500 with complete cases are `r totalsteps$total[totalsteps$total < 1500]`  
-   * The total number of steps less than 1500 with imputting values for missing cases are `r totalfilledsteps$total[totalfilledsteps$total < 1500]` 
-* More specific details at date level [against total steps for each date]:  
-```{r snippet,echo=FALSE}
-tapply(reorderFilledData[["steps"]][is.na(activity[["steps"]])], reorderFilledData$date[is.na(activity[["steps"]])], sum)
+* Mean and Median: Before vs After [imputing missing data]
+      * Mean: `r sprintf("%.0f",mn1) ` vs `r sprintf("%.0f",mn2)`  [-`r ((mean(totalsteps$total) - mean(totalfilledsteps$total)) / mean(totalsteps$total)) * 100`%]
+      * Median : `r sprintf("%.0f",md1) ` vs `r sprintf("%.0f",md2)` [-`r ((median(totalsteps$total) - median(totalfilledsteps$total)) / median(totalsteps$total)) * 100`%]
+* As per the 2 histograms comparison, there are about `r length(unique(activity$date[is.na(activity$steps)]))` days difference in the range of 1000 to 2000 [exactly 1141] total steps and this is clearly reflected with "breaks = 50" in histogram plots..  
+   * Each date and the corresponding number of steps for NAs, after imputing the missing values
+      ```{r snippet,echo=FALSE}
+tapply(reorderFilledData$steps[is.na(activity$steps)], reorderFilledData$date[is.na(activity$steps)], sum)
+```     
+```{r cleanup2, echo=FALSE,results=FALSE}
 rm(list=c("totalfilledsteps","totalsteps","activity"))
 ```
  
@@ -124,12 +105,13 @@ rm(list=c("totalfilledsteps","totalsteps","activity"))
 weekend <- weekdays(as.Date(reorderFilledData$date),TRUE) %in% c("Sat", "Sun")
 reorderFilledData$day <- factor(ifelse(weekend, "weekend", "weekday"))
 
-# Average the steps on {interval and day}
+# Average the steps on interval and day
 dayavg <- ddply(reorderFilledData, .(interval, day), summarize, avgsteps=mean(steps))
 ```
 ```{r weeksplot} 
 library(lattice)
-xyplot(avgsteps ~ interval | day, data = dayavg, layout=c(1,2), type="l", xlab="Interval", ylab="Number of steps")
+xyplot(avgsteps ~ interval | day, data = dayavg, type="l", layout=c(1,2),xlab="Interval", 
+       ylab="Number of steps", main="Activity patterns between weekdays and weekends")
 ```
 
 ```{r cleanup, echo=FALSE}
